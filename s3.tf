@@ -18,7 +18,9 @@ resource "aws_s3_bucket_public_access_block" "vulnerable_policy" {
   }
 resource "aws_s3_bucket_policy" "vulnerable_policy" {
   bucket = aws_s3_bucket.vulnerable_s3_bucket.id
+  depends_on = [aws_s3_bucket_public_access_block.vulnerable_policy]
   policy = jsonencode({
+  
     Version = "2012-10-17"
     Statement = [{
       Effect    = "Allow"
@@ -27,4 +29,15 @@ resource "aws_s3_bucket_policy" "vulnerable_policy" {
       Resource  = "${aws_s3_bucket.vulnerable_s3_bucket.arn}/*"
     }]
   })
+}
+resource "aws_s3_object" "fake_credntials"{
+  bucket= aws_s3_bucket.vulnerable_s3_bucket.id
+  key ="credntials.txt"
+  source = "fake-data/credentials.txt"
+}
+resource "aws_s3_object" "fake_employees"{
+  bucket = aws_s3_bucket.vulnerable_s3_bucket.id 
+  key ="employees.txt"
+  source = "fake-data/employees.txt"
+
 }

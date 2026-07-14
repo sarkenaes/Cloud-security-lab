@@ -1,0 +1,6 @@
+id,name,email,ssn,salary,role
+1,Sarah Johnson,sjohnson@acmecorp.com,123-45-6789,95000,Engineer
+2,Michael Chen,mchen@acmecorp.com,234-56-7890,120000,Manager
+3,Emily Davis,edavis@acmecorp.com,345-67-8901,85000,Analyst
+4,James Wilson,jwilson@acmecorp.com,456-78-9012,110000,Director
+5,Lisa Martinez,lmartinez@acmecorp.com,567-89-0123,75000,Developer

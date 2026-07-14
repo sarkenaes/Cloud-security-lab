@@ -1,0 +1,19 @@
+{
+  "database": {
+    "host": "prod-db.acmecorp.internal",
+    "port": 3306,
+    "name": "production_db",
+    "username": "db_admin",
+    "password": "Pr0d@cceSS2024!"
+  },
+  "api_keys": {
+    "stripe": "FAKE_STRIPE_KEY_FOR_SECURITY_LAB",
+    "sendgrid": "SG.aBcDeFgHiJkLmNoPqRsTuV.WxYz1234567890",
+    "twilio": "FAKE_TWILIO_KEY_FOR_SECURITY_LAB"
+  },
+  "redis": {
+    "host": "cache.acmecorp.internal",
+    "port": 6379,
+    "password": "redis_secret_2024"
+  }
+}
