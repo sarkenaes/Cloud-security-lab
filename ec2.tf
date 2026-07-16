@@ -33,9 +33,14 @@ tags={
 
 }
 }
+resource "aws_key_pair" "vulnerable"{
+    key_name= "${var.project_name}-key"
+    public_key = file("~/.ssh/cloud-lab-key.pub")
+}
 resource "aws_instance" "vulnerable"{
     ami = data.aws_ami.ubuntu.id
     instance_type = "t3.micro"
     subnet_id=aws_subnet.public.id
     vpc_security_group_ids =[aws_security_group.vulnerable.id]
+    key_name =aws_key_pair.vulnerable.key_name
 }
