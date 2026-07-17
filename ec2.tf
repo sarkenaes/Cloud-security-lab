@@ -43,4 +43,5 @@ resource "aws_instance" "vulnerable"{
     subnet_id=aws_subnet.public.id
     vpc_security_group_ids =[aws_security_group.vulnerable.id]
     key_name =aws_key_pair.vulnerable.key_name
+    iam_instance_profile=aws_iam_instance_profile.ec2_vulnerable.name
 }
