@@ -41,16 +41,15 @@ resource "aws_cloudtrail" "cloud-trail" {
   include_global_service_events = true
   is_multi_region_trail =true
   cloud_watch_logs_group_arn = "${aws_cloudwatch_log_group.cloudtrail_logs.arn}:*"
-  cloud_watch_role_group_arn=aws_iam_role.cloudtrail_cloudwatch.arn
+  cloud_watch_logs_role_arn=aws_iam_role.cloudtrail_cloudwatch.arn
+
 }
-##Creates the guard duty resource
-resource "aws_guardduty_detection" "main"{
-  enable ="true"
-}
+
 resource "aws_cloudwatch_log_group" "cloudtrail_logs" {
   name ="/aws/cloudtrail/${var.project_name}"
   retention_in_days =90
 }
+#allows cloudtrail to assume this role
 resource "aws_iam_role" "cloudtrail_cloudwatch"{
 name ="${var.project_name}-cloudtrail-cw-role"
 assume_role_policy =jsonencode({
@@ -62,6 +61,7 @@ assume_role_policy =jsonencode({
     }]
 })
 }
+#attaches policy to the role to stream logs into it 
 resource "aws_iam_role_policy" "cloudtrail_cloudwatch_policy"{
   name ="${var.project_name}-cloudtrail-cw-policy"
   role=aws_iam_role.cloudtrail_cloudwatch.id
@@ -77,4 +77,36 @@ resource "aws_iam_role_policy" "cloudtrail_cloudwatch_policy"{
       }]
 
   })
+}
+resource "aws_sns_topic" "security_alerts"{
+  name="${var.project_name}-security-alerts"
+}
+resource "aws_sns_topic_subscription" "security_alerts_emails" {
+  topic_arn = aws_sns_topic.security_alerts.arn
+  protocol  = "email"
+  endpoint  = "saronketema7@gmail.com"
+}
+resource "aws_cloudwatch_log_metric_filter" "iam" {
+  name           = "NewIAMCreation"
+  pattern        = "{$.eventName =\"CreateUser\"}"
+  log_group_name = aws_cloudwatch_log_group.cloudtrail_logs.name
+
+  metric_transformation {
+    name      = "NewIAMCreation"
+    namespace = "SecurityMetrics"
+    value     = "1"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "foobar" {
+  alarm_name                = "iam-create-user-alarm"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 1
+  metric_name               = NewIAMCreation"
+  namespace                 = "SecurityMetrics"
+  period                    = 300
+  statistic                 = "Sum"
+  threshold                 = 1
+  alarm_description         = "This metric monitors new IAM creation"
+  alarm_actions             = [aws_sns_topic.security_alerts.arn]
 }
