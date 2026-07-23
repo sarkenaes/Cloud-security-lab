@@ -98,15 +98,110 @@ resource "aws_cloudwatch_log_metric_filter" "iam" {
   }
 }
 
-resource "aws_cloudwatch_metric_alarm" "foobar" {
+resource "aws_cloudwatch_metric_alarm" "iam-alarm" {
   alarm_name                = "iam-create-user-alarm"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = 1
-  metric_name               = NewIAMCreation"
+  metric_name               = "NewIAMCreation"
   namespace                 = "SecurityMetrics"
   period                    = 300
   statistic                 = "Sum"
   threshold                 = 1
+  alarm_actions = [aws_sns_topic.security_alerts.arn]
   alarm_description         = "This metric monitors new IAM creation"
-  alarm_actions             = [aws_sns_topic.security_alerts.arn]
+  }
+resource "aws_cloudwatch_log_metric_filter" "publics3" {
+  name           = "PublicS3bucket"
+  pattern        = "{$.eventName =\"PutBucketPolicy\"}"
+  log_group_name = aws_cloudwatch_log_group.cloudtrail_logs.name
+
+  metric_transformation {
+    name      = "PublicS3Bucket"
+    namespace = "SecurityMetrics"
+    value     = "1"
+  }
 }
+resource "aws_cloudwatch_metric_alarm" "s3_alarm" {
+  alarm_name                = "public-s3"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 1
+  metric_name               = "PublicS3bucket"
+  namespace                 = "SecurityMetrics"
+  period                    = 300
+  statistic                 = "Sum"
+  threshold                 = 1
+  alarm_actions = [aws_sns_topic.security_alerts.arn]
+  alarm_description         = "This metric monitors public s3 buckets"
+  }
+
+  ####Firewall
+  resource "aws_cloudwatch_log_metric_filter" "firewall-filter" {
+  name           = "firewallfilter"
+  pattern        = "{$.eventName =\"AuthorizeSecurityGroupIngress\"}"
+  log_group_name = aws_cloudwatch_log_group.cloudtrail_logs.name
+
+  metric_transformation {
+    name      = "firewallfilter"
+    namespace = "SecurityMetrics"
+    value     = "1"
+  }
+}
+resource "aws_cloudwatch_metric_alarm" "firewall-alarm" {
+  alarm_name                = "firewallfilter"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 1
+  metric_name               = "firewallfilter"
+  namespace                 = "SecurityMetrics"
+  period                    = 300
+  statistic                 = "Sum"
+  threshold                 = 1
+  alarm_actions = [aws_sns_topic.security_alerts.arn]
+  alarm_description         = "This metric monitors any change in the friewall rules"
+  }
+##Attachingnewpolicytoarole
+resource "aws_cloudwatch_log_metric_filter" "newpolicy-filter" {
+  name           = "newpolicy"
+  pattern        = "{$.eventName =\"AttachRolePolicy\"}"
+  log_group_name = aws_cloudwatch_log_group.cloudtrail_logs.name
+
+  metric_transformation {
+    name      = "newpolicy"
+    namespace = "SecurityMetrics"
+    value     = "1"
+  }
+}
+resource "aws_cloudwatch_metric_alarm" "newpolicy-alarm" {
+  alarm_name                = "newpolicy"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 1
+  metric_name               = "newpolicy"
+  namespace                 = "SecurityMetrics"
+  period                    = 300
+  statistic                 = "Sum"
+  threshold                 = 1
+  alarm_actions = [aws_sns_topic.security_alerts.arn]
+  alarm_description         = "This metric monitors the attachment of new policy to the role"
+  }
+##IMDS accessed from another device
+resource "aws_cloudwatch_log_metric_filter" "IMDS-Metric-filter" {
+  name           = "IMDS"
+  pattern = "{ ($.userIdentity.type = \"AssumedRole\") && ($.userIdentity.arn = \"*cloud-security-lab-ec2-role*\") && ($.sourceIPAddress != \"${aws_instance.vulnerable.public_ip}\") }"
+   log_group_name = aws_cloudwatch_log_group.cloudtrail_logs.name
+  metric_transformation {
+    name      = "IMDS"
+    namespace = "SecurityMetrics"
+    value     = "1"
+  }
+}
+resource "aws_cloudwatch_metric_alarm" "IMDS-alarm" {
+  alarm_name                = "IMDS"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 1
+  metric_name               = "IMDS"
+  namespace                 = "SecurityMetrics"
+  period                    = 300
+  statistic                 = "Sum"
+  threshold                 = 1
+  alarm_actions = [aws_sns_topic.security_alerts.arn]
+  alarm_description         = "This metric checks if the IMDS has been accessed by any pther device than the EC2"
+  }
