@@ -86,6 +86,11 @@ resource "aws_sns_topic_subscription" "security_alerts_emails" {
   protocol  = "email"
   endpoint  = "saronketema7@gmail.com"
 }
+resource "aws_sns_topic_subscription" "lambda_remediation" {
+  topic_arn = aws_sns_topic.security_alerts.arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.remediation.arn
+  }
 resource "aws_cloudwatch_log_metric_filter" "iam" {
   name           = "NewIAMCreation"
   pattern        = "{$.eventName =\"CreateUser\"}"
