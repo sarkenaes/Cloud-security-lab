@@ -1,7 +1,6 @@
 # AWS Purple Team Cloud Security Lab
 
-> A deliberately vulnerable AWS environment built to simulate real-world cloud attacks and demonstrate automated detection and response — covering the full security lifecycle from misconfiguration through exploitation to detection.
-
+> A deliberately vulnerable AWS environment built to simulate real world cloud attacks and demonstrate automated detection and response. 
 ---
 
 ## Table of Contents
@@ -16,21 +15,19 @@
 - [Setup & Deployment](#setup--deployment)
 - [Key Security Concepts](#key-security-concepts)
 - [Future Enhancements](#future-enhancements)
-- [Disclaimer](#disclaimer)
+
 
 ---
 
 ## Overview
 
-This project deploys a realistic but intentionally misconfigured AWS environment, attacks it using real techniques, and detects those attacks using AWS-native security tooling.
+This project deploys an intentionally misconfigured AWS environment, attacks it using real techniques, and detects those attacks using AWS-native security tooling.
 
 **The three phases:**
 
 1. **Build** — Deploy vulnerable infrastructure using Terraform (misconfigured IAM, open security groups, public S3 buckets, exposed databases)
 2. **Attack** — Exploit those misconfigurations using Python/boto3 scripts simulating real attacker techniques (S3 exfiltration, IMDS credential theft)
 3. **Detect** — Catch those attacks using CloudTrail, CloudWatch, and SNS alerting
-
-This mirrors what cloud security engineers actually do — understanding both how attacks happen and how to build systems that catch them.
 
 ---
 
@@ -77,10 +74,10 @@ Attack Path 2: Attacker → SSH into EC2 → IMDS → steal credentials → use 
 
 ## Vulnerabilities Built
 
-| Resource | Misconfiguration | Real-World Risk |
+| Resource | Misconfiguration | Risk |
 |---|---|---|
 | Security Group | All ports open to `0.0.0.0/0` inbound and outbound | EC2 directly reachable from anywhere on the internet |
-| EC2 Instance | Public subnet + `map_public_ip_on_launch = true` | Auto-assigned public IP, no network isolation |
+| EC2 Instance | Public subnet + `map_public_ip_on_launch = true` | Auto assigned public IP, no network isolation |
 | IAM Role | `AdministratorAccess` attached to EC2 instance profile | Full AWS account takeover if EC2 is compromised |
 | S3 Bucket | Public access block disabled + `Principal: "*"` bucket policy | Unauthenticated data exfiltration by anyone |
 | RDS Database | `publicly_accessible = true`, no encryption, `password123` | Database reachable from internet with trivial credentials |
@@ -94,13 +91,13 @@ Attack Path 2: Attacker → SSH into EC2 → IMDS → steal credentials → use 
 
 **File:** `attacks/s3_enum.py`
 
-**What it demonstrates:** Unauthenticated data exfiltration from a public S3 bucket — no AWS account or credentials required. A real external attacker can download sensitive files directly from the internet.
+**What it demonstrates:** Unauthenticated data exfiltration from a public S3 bucket.No AWS account or credentials required. A real external attacker can download sensitive files directly from the internet.
 
 **Technique:**
-- Uses `botocore.UNSIGNED` to make completely unauthenticated requests (simulating an attacker with zero AWS access)
-- Guesses common sensitive filenames rather than listing (since `s3:ListBucket` is not granted — realistic attacker behavior)
+- Uses `botocore.UNSIGNED` to make completely unauthenticated requests -simulating an attacker with zero AWS access
+- Guesses common sensitive filenames rather than listing 
 - Downloads successful guesses to a local `exfiltrated/` directory
-- Handles failed guesses gracefully without crashing
+- Handles failed guesses  without crashing
 
 **Run it:**
 ```bash
@@ -110,7 +107,7 @@ python3 attacks/s3_enum.py
 
 **Screenshot:** *(see `/docs/screenshots/s3_exfiltration.png`)*
 
-**Real-world parallel:** This technique was used in the Capital One breach (2019) and multiple Facebook data exposures — companies accidentally misconfigured S3 public access settings and attackers exfiltrated sensitive data without ever authenticating to AWS.
+**Real-world parallel:** This technique was used in the Capital One breach (2019) and multiple Facebook data exposures.The companies accidentally misconfigured S3 public access settings and attackers exfiltrated sensitive data without ever authenticating to AWS.
 
 ---
 
@@ -118,9 +115,9 @@ python3 attacks/s3_enum.py
 
 **Files:** `attacks/IMDS.py` + `attacks/use_stolen_creds.py`
 
-**What it demonstrates:** Full EC2 Instance Metadata Service (IMDS) credential theft — from gaining access to an EC2 instance, through stealing its live IAM credentials, to using those credentials remotely to prove full account takeover.
+**What it demonstrates:** Full EC2 Instance Metadata Service (IMDS) credential theft from gaining access to an EC2 instance, through stealing its live IAM credentials, to using those credentials remotely to prove full account takeover.
 
-**How IMDS works:** Every EC2 instance has a special internal-only address (`169.254.169.254`) that serves live AWS credentials for whatever IAM role is attached to the instance. Any code running ON the instance can query this address — no extra authentication required. This becomes dangerous when the instance is compromised and the attached role has excessive permissions.
+**How IMDS works:** Every EC2 instance has a special internal-only address (`169.254.169.254`) that serves live AWS credentials for whatever IAM role is attached to the instance. Any code running ON the instance can query this address  This becomes dangerous when the instance is compromised and the attached role has excessive permissions.
 
 **Attack chain:**
 
@@ -163,7 +160,6 @@ python3 attacks/use_stolen_creds.py
 
 **Screenshot:** *(see `/docs/screenshots/imds_theft.png` and `/docs/screenshots/stolen_creds_proof.png`)*
 
-**Real-world parallel:** This technique commonly occurs via SSRF (Server-Side Request Forgery) vulnerabilities in web applications — an attacker tricks the server into querying IMDS on their behalf, stealing credentials without ever gaining direct shell access.
 
 **CloudTrail evidence:** The `iam:ListUsers` call made with stolen credentials showed up in CloudTrail with:
 - `userIdentity.type: AssumedRole` (EC2 role credentials)
@@ -188,7 +184,7 @@ Metric Filters scan the CloudTrail log stream in real time, watching for specifi
 
 | Alarm | Filter Pattern | What It Catches |
 |---|---|---|
-| `iam-create-user-alarm` | `{ $.eventName = "CreateUser" }` | Any new IAM user creation — high signal in this environment |
+| `iam-create-user-alarm` | `{ $.eventName = "CreateUser" }` | Any new IAM user creation   |
 
 ### SNS Alerting
 When a CloudWatch Alarm fires, an SNS notification is sent immediately to a subscribed email — real-time alerting without manual log review.
@@ -345,10 +341,6 @@ terraform destroy
 
 ---
 
-## Disclaimer
 
-This environment is **intentionally vulnerable**. Do not deploy in a production AWS account. Always run `terraform destroy` at the end of each session to avoid unnecessary costs and security exposure. The fake sensitive data files contain no real credentials or PII.
 
 ---
-
-*Built as part of a cloud security learning project. Feedback and contributions welcome.*
