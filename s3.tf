@@ -7,7 +7,7 @@ resource "aws_s3_bucket" "vulnerable_s3_bucket" {
 
   }
   }
- 
+ # removes all aws's restriction to make it private(makes it public if configured that way)
 resource "aws_s3_bucket_public_access_block" "vulnerable_policy" {
   bucket = aws_s3_bucket.vulnerable_s3_bucket.id
 
@@ -16,6 +16,7 @@ resource "aws_s3_bucket_public_access_block" "vulnerable_policy" {
   ignore_public_acls      = false
   restrict_public_buckets = false
   }
+  #makes it actually public
 resource "aws_s3_bucket_policy" "vulnerable_policy" {
   bucket = aws_s3_bucket.vulnerable_s3_bucket.id
   depends_on = [aws_s3_bucket_public_access_block.vulnerable_policy]
@@ -30,6 +31,7 @@ resource "aws_s3_bucket_policy" "vulnerable_policy" {
     }]
   })
 }
+#UPLOAD THE FILES
 resource "aws_s3_object" "fake_credntials"{
   bucket= aws_s3_bucket.vulnerable_s3_bucket.id
   key ="credntials.txt"
