@@ -313,7 +313,7 @@ terraform destroy
 
 ---
 
-## Key Security Concepts Demonstrated
+## Security Concepts Demonstrated 
 
 **Principle of Least Privilege** — EC2 has `AdministratorAccess` when it should have only the specific permissions needed for its job. A compromised instance with minimal permissions causes limited damage; one with admin access causes full account takeover.
 
@@ -327,7 +327,7 @@ terraform destroy
 
 ---
 
-## Future Enhancements
+## Future Additions
 
 - [ ] RDS exploitation script — connect to exposed database using weak credentials, demonstrate data access
 - [ ] Additional CloudWatch alarms — S3 policy changes, security group modifications, IAM privilege escalation
