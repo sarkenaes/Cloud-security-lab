@@ -340,7 +340,6 @@ terraform destroy
 - [ ] GuardDuty integration — automated ML-based threat detection layered on top of CloudWatch rules
 
 ---
-
-
-
+Demonstration
+![demo](diagram.png)
 ---
